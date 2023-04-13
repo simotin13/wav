@@ -175,3 +175,18 @@ func FromLeToUInt32(buf []byte) (uint32, error) {
 	}
 	return val, nil
 }
+
+func writeWav(pcmFilePath string, wavFilePath string) {
+	f, err := os.Open(wavFilePath)
+	if err != nil {
+		os.Exit(-1)
+	}
+	defer f.Close()
+
+	fileSize := 0
+	wavBin := []byte("RIFF")
+
+	// チャンクサイズ(ファイルサイズ -8)
+	buf := make([]byte, 8)
+	binary.LittleEndian.PutUint64(buf, uint64(num))
+}
