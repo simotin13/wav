@@ -27,7 +27,7 @@ type WavHdr struct {
 }
 
 func main() {
-	filepath := "sample.wav"
+	filepath := os.Args[1]
 	fi, err := os.Stat(filepath)
 	if err != nil {
 		os.Exit(-1)
@@ -55,7 +55,6 @@ func main() {
 		fmt.Println("binary.Read failed:", err)
 	}
 	pos += 4
-	fmt.Println(wavHdr.Size)
 
 	hWave := string(bin[pos : pos+4])
 	if hWave != "WAVE" {
@@ -63,9 +62,23 @@ func main() {
 	}
 	pos += 4
 
-	hFmt := string(bin[pos : pos+4])
-	if hFmt != "fmt " {
-		panic("Not fmt ")
+	// JUNK タグがある場合はスキップ
+	tag := string(bin[pos : pos+4])
+	if tag == "JUNK" {
+		fmt.Println("JUNK!")
+		pos += 4
+		size, err := FromLeToUInt32(bin[pos:])
+		fmt.Println(size)
+		if err != nil {
+			fmt.Println("binary.Read failed:", err)
+		}
+		pos += 4
+		pos += int(size)
+	}
+	tag = string(bin[pos : pos+4])
+	fmt.Println(tag)
+	if tag != "fmt " {
+		panic("Not fmt")
 	}
 	pos += 4
 
@@ -133,7 +146,7 @@ func main() {
 	}
 	hData := string(bin[pos : pos+4])
 	if hData != "data" {
-		panic("Not fmt ")
+		panic("Not data ")
 	}
 	pos += 4
 
@@ -183,10 +196,4 @@ func writeWav(pcmFilePath string, wavFilePath string) {
 	}
 	defer f.Close()
 
-	fileSize := 0
-	wavBin := []byte("RIFF")
-
-	// チャンクサイズ(ファイルサイズ -8)
-	buf := make([]byte, 8)
-	binary.LittleEndian.PutUint64(buf, uint64(num))
 }
